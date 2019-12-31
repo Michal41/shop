@@ -1,17 +1,7 @@
 import pytest
-from pymongo import MongoClient
 from shop import Shop
-import os
-import base64
 from unittest.mock import Mock,patch,MagicMock,call
-
-
-'''
-myclient = MongoClient(
-    f"mongodb+srv://{os.getenv('DB_NAME')}:{os.getenv('PASS')}@cluster0-twyu7.mongodb.net/test?retryWrites=true&w=majority")
-storage = myclient["Shop_db"]
-'''
-
+from shop.price_comparison import Price
 def test_shop_can_be_init():
     mock = Mock()
     assert isinstance(Shop(mock), Shop)
@@ -25,6 +15,15 @@ def test_shop_add_to_db():
     calls_args_list = products.insert_one.call_args_list
     expected = [call({'category': 'phone', 'name': 'samsung', 'price': 12, 'description': 'phonex', 'image_file': None})]
     assert expected == calls_args_list
+
+def test_shop_add_to_db_without_description():
+    mock = MagicMock()
+    shop = Shop(mock)
+    products = shop.products_db()
+    shop.add_product_to_db("samsung", 12)
+    insert_to_products = products.insert_one.call_args_list
+    assert insert_to_products
+
 
 def test_shop_add_to_db_negative_prinse():
     mock = MagicMock()
@@ -57,3 +56,20 @@ def test_shop_buy_products_from_cart():
     insert_to_orders = orders.insert_one.call_args_list
     remove_from_carts = carts.delete_one.call_args_list
     assert insert_to_orders and remove_from_carts
+
+def test_price_list_validation():
+    assert not(Price.price_list_validation([1, 100]))
+
+
+
+def test_price_list_invalid_name():
+    assert not(Price("xxxx", "xxxx").get_price_list())
+
+def test_price_list_on_valid_name():
+    assert (Price("xiomi redmi note 8").get_price_list())
+
+def test_price_sugested_value():
+    mock = MagicMock()
+    price = Price(mock)
+    price.get_price_list = MagicMock(return_value=[11, 1])
+    assert price.get_sugested_price() == 6

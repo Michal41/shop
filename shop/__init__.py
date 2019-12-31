@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import os
 import base64
-
+from .description import product_description
 
 class Shop:
 
@@ -26,9 +26,11 @@ class Shop:
     def cart_db(self):
         return self.storage["carts"]
 
-    def add_product_to_db(self, name, price, description, category="phone", image_path=None):
+    def add_product_to_db(self, name, price, description=None, category="phone", image_path=None):
         if price <= 0:
             raise ValueError
+        if not description:
+            description = product_description(name)
         encoded_file = self.image_file_encode(image_path)
         db = self.products_db()
         db.insert_one({"category": category, "name": name, "price": price, "description": description,

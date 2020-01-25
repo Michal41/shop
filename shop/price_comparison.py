@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 import re
 
 
@@ -8,13 +7,11 @@ class Price:
         self.name = name
         self.category = category
 
-
     def get_price_list(self):
         translate_category = {"phone": "smartfony-i-telefony-komorkowe-165",
                             "laptop": "laptopy-491",
                             "e-book reader": "czytniki-ebookow-76253?",
-                            "tablet": "tablety-89253"
-                            }
+                            "tablet": "tablety-89253"}
         try:
             category = translate_category.get(self.category.lower())
             if not category:
@@ -31,6 +28,10 @@ class Price:
     def get_sugested_price(self):
         price_list = self.get_price_list()
         return sum(price_list)//len(price_list) if price_list else 0
+
+    def get_min_price(self):
+        price_list = self.get_price_list()
+        return min(price_list) if price_list else 0
 
     @classmethod
     def price_list_validation(cls, price_list):

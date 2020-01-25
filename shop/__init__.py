@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import os
 import base64
-from .description import product_description
+from .description import Description
 
 class Shop:
 
@@ -30,7 +30,7 @@ class Shop:
         if price <= 0:
             raise ValueError
         if not description:
-            description = product_description(name)
+            description = Description(name).get_product_description()
         encoded_file = self.image_file_encode(image_path)
         db = self.products_db()
         db.insert_one({"category": category, "name": name, "price": price, "description": description,
@@ -52,5 +52,6 @@ class Shop:
         cart_products = self.cart_db().find({"user_id": user_id}).next()["products"]
         order_amount = sum([self.products_db().find({"_id": x[0]}).next()["price"] * x[1] for x in cart_products]) + (
             delivery_price)
-        self.orders_db().insert_one({"user_id": user_id, "products": cart_products, "order_amount": order_amount})
+        self.orders_db().insert_one({"user_id": user_id, "products": cart_products, "order_amount": order_amount,
+                                     'completed': False})
         self.cart_db().delete_one({"user_id": user_id})
